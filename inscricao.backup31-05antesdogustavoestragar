@@ -1,0 +1,41 @@
+<?php
+        session_start();
+
+	$nome=$_POST['nome'];
+	$ra=$_POST['ra'];
+	$cpf=$_POST['cpf'];
+	$email=$_POST['email'];
+	$senha=crypt($_POST['senha']);
+	$instituicao=$_POST['instituicao'];
+	$cidade=$_POST['cidade'];
+	$estado=$_POST['estado'];
+	$oficinavagas=$_POST['oficina'];
+	$partes = explode("#", $oficinavagas);
+	$oficina=$partes[0];
+	$vagas=$partes[1];
+
+	mysql_connect("localhost", "salin", "S@l1n");
+	mysql_select_db("salin");
+
+ //verifica se existe
+ $sql = mysql_query("SELECT * FROM 2016_participantes WHERE cpf='$cpf' OR email='$cpf'");
+ $existe = mysql_num_rows($sql);
+ if($existe==1){
+	 $_SESSION["mensagem"]="<div class='vermelho'>Você já está cadastrado na IV Semana Acadêmica</div>";
+ }else{
+	  $sql = mysql_query("INSERT INTO 2016_participantes(nome,ra, cpf, email, senha, instituicao, cidade, estado, idoficina) VALUES('$nome','$ra', '$cpf', '$email', '$senha', '$instituicao', '$cidade', '$estado', '$oficina')") or die(mysql_error());
+	  $idParticipante = mysql_insert_id();
+
+	  $vagas--;
+	  mysql_query("UPDATE 2016_oficinas SET vagas=$vagas WHERE idOficina=$oficina");
+
+	  $sql = mysql_query("INSERT INTO 2016_participantes_oficinas(idParticipante, idOficina) VALUES('$idParticipante', '$oficina') ") or die(mysql_error());
+
+	  if($sql)
+		  $_SESSION["mensagem"]="<div class='verde'>Seu cadastro na IV semana acadêmica de licenciatura foi realizada com sucesso!!!</div>";
+	  else
+		  $_SESSION["mensagem"]="<div class='vermelho'>Cadastro não efetuado. Tente novamente</div>";
+ }
+	header("location:index.php#inscricoes");
+
+?>
